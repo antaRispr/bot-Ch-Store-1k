@@ -14,17 +14,17 @@ run: async (client, interaction, args) => {
     .setTitle(`${config.client.title}`)
     .setDescription(`
     
-    🔹 **Comandos Gerais:**
-    🔹 | /help - Exibe está mensagem
-    🔹 | /add-stock - Adicionar estoque aos produtos!
-    🔹 | /criar - Adicionar novo produto a venda!
-    🔹 | /set - Exibir produto para compra!
-    🔹 | /gerenciar - Gerenciar um produto da loja
-    🔹 | /limpardm - Limpa a sua dm
+    📚 **Comandos Gerais:**
+    📌 | /help - Exibe está mensagem
+    📌 | /add-stock - Adicionar estoque aos produtos!
+    📌 | /criar - Adicionar novo produto a venda!
+    📌 | /set - Exibir produto para compra!
+    📌 | /gerenciar - Gerenciar um produto da loja
+    📌 | /limpardm - Limpa a sua dm
     
     🛡️ **Comandos de Moderação:**
-    🔹 | /lock - Tranca o Canal Selecionado
-    🔹 | /unlock - Destranca o Canal Selecionado
+    📌 | /lock - Tranca o Canal Selecionado
+    📌 | /unlock - Destranca o Canal Selecionado
     
     ___Outros:___
     > **Ch store | Atendimento no servidor da loja.**`)

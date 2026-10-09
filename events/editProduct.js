@@ -31,7 +31,7 @@ module.exports = {
                         .setThumbnail(`${config.client.foto}`)
                         .setDescription(`Você está editando um produto. 
                         
-                        🔹 | **Id do produto:** ${row.id}`)
+                        🆔 | **Id do produto:** ${row.id}`)
                         
                 ],
                 components: [
@@ -40,12 +40,12 @@ module.exports = {
                             new Discord.ButtonBuilder()
                                 .setCustomId('edit_name')
                                 .setLabel('Nome')
-                                .setEmoji("🔹 ")
+                                .setEmoji("🏷️")
                                 .setStyle(3),
                             new Discord.ButtonBuilder()
                                 .setCustomId('edit_description')
                                 .setLabel('Descrição')
-                                .setEmoji("🔹")
+                                .setEmoji("📝")
                                 .setStyle(3),
                             new Discord.ButtonBuilder()
                                 .setCustomId('edit_value')
@@ -131,7 +131,7 @@ module.exports = {
                                         new Discord.ButtonBuilder()
                                             .setCustomId('back_stock')
                                             .setLabel('Voltar')
-                                            .setEmoji("🔹")
+                                            .setEmoji("📝")
                                             .setStyle(4),
                                     )
                             ]

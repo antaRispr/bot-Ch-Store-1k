@@ -36,7 +36,7 @@ module.exports = {
                         .setCustomId(`cancel_checkout`)
                         .setStyle(2)
                         .setLabel(`Ativar Notificações`)
-                        .setEmoji('🔹'),
+                        .setEmoji('🔔'),
                     ),
             ]
         })
