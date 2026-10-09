@@ -1,5 +1,5 @@
 const Discord = require('discord.js');
-const { toJSON } = require('..');
+const { randomUUID } = require('node:crypto');
 
 /*============================= | Create Product | =========================================*/
 module.exports = {
@@ -13,7 +13,7 @@ module.exports = {
 
             const modal = new Discord.ModalBuilder()
                 .setCustomId('create_product')
-                .setTitle(`New Product`)
+                .setTitle(`Cadastrar serviço`)
 
             const product_name = new Discord.TextInputBuilder()
                 .setCustomId('product_name')
@@ -25,7 +25,7 @@ module.exports = {
 
             const product_value = new Discord.TextInputBuilder()
                 .setCustomId('product_value')
-                .setLabel('Valor')
+                .setLabel('Valor do pacote (R$)')
                 .setRequired(true)
                 .setMaxLength(50)
                 .setStyle(1)
@@ -37,7 +37,7 @@ module.exports = {
                 .setRequired(true)
                 .setMaxLength(255)
                 .setStyle(2)
-                .setPlaceholder('Melhor produto da atualidade.')
+                .setPlaceholder('Descreva o que está incluído, o prazo e os limites do pacote.')
 
             modal.addComponents(
                 new Discord.ActionRowBuilder().addComponents(product_name),
@@ -49,16 +49,20 @@ module.exports = {
         }
 
         if (interaction.isModalSubmit() && interaction.customId.startsWith("create_product")) {
-            const id = Math.floor(Math.random() * 5000) + 1000;
+            if (!interaction.member.permissions.has(Discord.PermissionFlagsBits.Administrator)) return interaction.reply({ content: 'Somente administradores podem cadastrar serviços.', ephemeral: true });
+            const value = Number(interaction.fields.getTextInputValue('product_value').trim().replace(',', '.'));
+            if (!Number.isFinite(value) || value <= 0) return interaction.reply({ content: 'Informe um preço válido maior que zero, como 15,00.', ephemeral: true });
+            const id = randomUUID();
             const product = {
                 id,
                 name: interaction.fields.getTextInputValue('product_name'),
-                value: parseFloat(interaction.fields.getTextInputValue('product_value')),
+                value,
+                type: 'service',
                 body: interaction.fields.getTextInputValue('product_body'),
             };
 
-            db.set(`product_${id}`, product);
-            interaction.reply({ content: '✅ | Produto cadastrado com sucesso!', ephemeral: true })
+            await db.set(`product_${id}`, product);
+            interaction.reply({ content: '✅ | Serviço cadastrado com sucesso!', ephemeral: true })
         }
     }
 }

@@ -14,7 +14,7 @@ module.exports = {
             const product_id = interaction.values[0];
 
             var row = await db.get(`product_${product_id}`);
-            if (row.length < 1) return interaction.reply({
+            if (!row) return interaction.reply({
                 embeds: [
                     new Discord.EmbedBuilder()
                         .setColor(config.client.embed)
@@ -51,11 +51,6 @@ module.exports = {
                                 .setCustomId('edit_value')
                                 .setLabel('Preço')
                                 .setEmoji("💰")
-                                .setStyle(3),
-                            new Discord.ButtonBuilder()
-                                .setCustomId('edit_stock')
-                                .setLabel('Estoque')
-                                .setEmoji("📦")
                                 .setStyle(3),
                             new Discord.ButtonBuilder()
                                 .setCustomId('delete_product')
@@ -103,90 +98,6 @@ module.exports = {
                             interactionName.delete();
                             collectorValue.stop()
                         });
-                    } else if (interaction2.customId === "edit_stock") {
-                        interaction2.reply({
-                            embeds: [
-                                new Discord.EmbedBuilder()
-                                    .setColor(config.client.embed)
-                                    .setDescription('Escolha uma opção para gerenciar o estoque!')
-                            ],
-                            components: [
-                                new Discord.ActionRowBuilder()
-                                    .addComponents(
-                                        new Discord.ButtonBuilder()
-                                            .setCustomId('view_stock')
-                                            .setLabel('Ver estoque')
-                                            .setEmoji("📦")
-                                            .setStyle(3),
-                                        new Discord.ButtonBuilder()
-                                            .setCustomId('take_stock_random')
-                                            .setLabel('Pegar estoque')
-                                            .setEmoji("⏳")
-                                            .setStyle(3),
-                                        new Discord.ButtonBuilder()
-                                            .setCustomId('remove_stock')
-                                            .setLabel('Remover estoque')
-                                            .setEmoji("🗑️")
-                                            .setStyle(4),
-                                        new Discord.ButtonBuilder()
-                                            .setCustomId('back_stock')
-                                            .setLabel('Voltar')
-                                            .setEmoji("📝")
-                                            .setStyle(4),
-                                    )
-                            ]
-                        }).then((msg) => {
-
-                            const collectorStock = interaction2.channel.createMessageComponentCollector();
-                            collectorStock.on('collect', async (interactionStock) => {
-                                if (interactionStock.customId === "view_stock") {
-                                    interactionStock.reply({
-                                        embeds: [
-                                            new Discord.EmbedBuilder()
-                                                .setColor(config.client.embed)
-                                                .setDescription(`\`\`\`${row.stocks.join('\n')}\`\`\``)
-                                        ],
-                                        ephemeral: true
-                                    })
-                                } else if (interactionStock.customId === "take_stock_random") {
-                                    const stock_generated = Math.floor(Math.random() * row.stocks.length);
-                                    interactionStock.reply({
-                                        embeds: [
-                                            new Discord.EmbedBuilder()
-                                                .setColor(config.client.embed)
-                                                .setDescription(`\`\`\`${row.stocks[stock_generated]}\`\`\``)
-                                        ],
-                                        ephemeral: true
-                                    })
-
-                                    row.stocks = row.stocks.filter(p => p !== row.stocks[stock_generated])
-
-                                    db.pull(`product_${row.id}.stocks`, row.stocks[stock_generated])
-                                } else if (interactionStock.customId === "remove_stock") {
-                                    interactionStock.reply(`🔹  | Insira o stock que você deseja remover!`).then(msg => {
-                                        const collectorRemoveStock = interaction2.channel.createMessageCollector();
-                                        collectorRemoveStock.on('collect', async (interactionRemoveStock) => {
-                                            const stockRemove = row.stocks.filter(p => p === interactionRemoveStock.content)
-
-                                            if (!stockRemove || !stockRemove[0]) return collectorRemoveStock.stop() + interactionStock.deleteReply() + interactionRemoveStock.delete() + interactionRemoveStock.channel.send(`Estoque não encontrado!`).then(msg => { setTimeout(() => { msg.delete() }, 1000); })
-
-                                            row.stocks = row.stocks.filter(p => p !== stockRemove[0])
-                                            db.pull(`product_${row.id}.stocks`, stockRemove[0])
-                                            interactionRemoveStock.delete();
-                                            interactionStock.deleteReply()
-                                            interactionRemoveStock.channel.send(`✅ | Estoque removido com sucesso!`).then(msg => { setTimeout(() => { msg.delete() }, 1000); })
-                                            collectorRemoveStock.stop();
-                                        });
-                                    })
-                                } else if (interactionStock.customId === "back_stock") {
-                                    collectorStock.stop();
-                                }
-                            });
-
-                            collectorStock.on('end', collected => {
-                                interaction2.deleteReply();
-                            })
-                        })
                     } else if (interaction2.customId === "delete_product") {
                         interaction.deleteReply();
                         db.delete(`product_${row.id}`);

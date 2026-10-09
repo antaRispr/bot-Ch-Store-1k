@@ -1,421 +1,144 @@
-const Discord = require('discord.js')
-const config = require('../config.json')
-const moment = require("moment")
-moment.locale("pt-br");
-const mercadopago = require('mercadopago');
-/*============================= | Create Product | =========================================*/
-module.exports = {
-    name: 'startCheckout',
-    async execute(interaction) {
-        if (interaction.isButton() && interaction.customId.startsWith("sales-")) {
-            const product_id = interaction.customId.slice(interaction.customId.indexOf('-')).replace('-', '')
-            const row = await db.get(`product_${product_id}`);
-
-            if (!row) return interaction.reply({
-                embeds: [
-                    new Discord.EmbedBuilder()
-                        .setColor(config.client.embed)
-                        .setTitle('Produto não encontrado!')
-                        .setDescription('Este produto pode não estar mais disponível!')
-                ],
-                ephemeral: true
-            })
-
-            if (!row.stocks || row.stocks.length < 1) return interaction.reply({
-                embeds: [
-                    new Discord.EmbedBuilder()
-                        .setColor(config.client.embed)  
-                        .setDescription('⚠️ | Este produto está sem estoque, aguarde um reabastecimento!')
-                
-                    ],
-                    ephemeral: true,
-            components: [
-                new Discord.ActionRowBuilder()
-                    .addComponents(
-                        new Discord.ButtonBuilder()
-                        .setCustomId(`cancel_checkout`)
-                        .setStyle(2)
-                        .setLabel(`Ativar Notificações`)
-                        .setEmoji('🔔'),
-                    ),
-            ]
-        })
-            
-            
-
-            if (interaction.guild.channels.cache.find(c => c.name === `🛒・${interaction.user.username}`)) {
-                return interaction.reply({
-                    embeds: [
-                        new Discord.EmbedBuilder()
-                            .setColor(config.client.embed)
-                            .setTitle(`${config.client.title} | Sistema de Carrinho`)
-                            .setDescription(`✅ | ${interaction.user} Você já possui um carrinho aberto, finalize a compra para abrir um novo!`)
-                    ],
-                    ephemeral: true,
-                })
-            }
-
-            interaction.guild.channels.create({
-                name: `🛒・${interaction.user.username}`,
-                type: 0,
-                parent: config.sales.categoria_carrinho,
-                permissionOverwrites: [
-                    {
-                        id: interaction.guild.id,
-                        deny: ["ViewChannel"]
-                    },
-                    {
-                        id: interaction.user.id,
-                        allow: ["ViewChannel"],
-                        deny: ["SendMessages", "AttachFiles", "AddReactions"]
-                    }
-                ]
-            }).then(channel => {
-                    interaction.reply({
-                        embeds: [
-                            new Discord.EmbedBuilder()
-                                .setColor(config.client.embed)
-                                .setDescription(`✅ | ${interaction.user} **Seu carrinho foi aberto com sucesso em: ${channel}, fique à vontade para adicionar mais produtos.**`)
-                        ],   ephemeral: true
-                    })
-
-                var qrcode = true;
-                var pix = true;
-                var quantity = 1;
-                var product_price = row.value * quantity
-
-                const protocol = Math.floor(Math.random() * 900000) + 100000;;
-                
-                channel.send({
-                    embeds: [
-                        new Discord.EmbedBuilder()
-                            .setColor(config.client.embed)
-                            .setTitle(`${config.client.title} | Resumo da Compra`)
-                            .setDescription(`🔹  | Produto: \`${row.name}\`\n💰 | Valor unitário: \`R$${(row.value * quantity).toFixed(2)}\`\n 📦 | Quantidade: \`${quantity}\`\n✅ | Total: \`R$${(row.value * quantity).toFixed(2)}\`\n\n\n🛒 | **Produto no Carrinho:** \`${quantity}\`\n💰 | **Valor a Pagar:** \`R$${(row.value * quantity).toFixed(2)}\`\n🔹 | **Cupom Adicionado:** \`Em breve\``)
-                    ], content: `<@${interaction.user.id}>`,
-                    components: [
-                        new Discord.ActionRowBuilder()
-                            .addComponents(
-                                new Discord.ButtonBuilder()
-                                .setCustomId(`remove_checkout_product`)
-                                .setStyle(2)
-                                .setLabel('-'),
-                            new Discord.ButtonBuilder()
-                                .setCustomId(`confirm_checkout_product`)
-                                .setStyle(3)
-                                .setLabel('Comprar')
-                                .setEmoji('✅'),
-                                new Discord.ButtonBuilder()
-                                .setCustomId(`add_checkout_product`)
-                                .setStyle(2)
-                                .setLabel('+'),
-                            new Discord.ButtonBuilder()
-                                .setCustomId(`cancel_checkout`)
-                                .setStyle(4)
-                                .setEmoji('🗑️')
-                            ),
-                    ]
-                }).then(async msg => {
-                    const filter = i => i.member.id === interaction.user.id;
-                    const collector = msg.createMessageComponentCollector({ filter });
-                    collector.on('collect', interaction2 => {
-                        if (interaction2.customId === "remove_checkout_product") {
-                            if (quantity <= 1) return interaction2.reply({ content: `🔹 | Você não pode deixar o stock abaixo de 0`, ephemeral: true })
-
-                            quantity -= 1;
-
-                            product_price = row.value * quantity;
-
-                            interaction2.update({
-                                embeds: [
-                                    new Discord.EmbedBuilder()
-                                        .setColor(config.client.embed)
-                                        .setTitle(`${config.client.title} | Resumo da Compra`)
-                                        .setDescription(`🔹  | Produto: \`${row.name}\`\n💰 | Valor unitário: \`R$${(row.value * quantity).toFixed(2)}\`\n 📦 | Quantidade: \`${quantity}\`\n✅ | Total: \`R$${(row.value * quantity).toFixed(2)}\`\n\n\n✅ | **Produto no Carrinho:** \`${quantity}\`\n💰 | **Valor a Pagar:** \`R$${(row.value * quantity).toFixed(2)}\`\n🔹 | **Cupom Adicionado:** \`Em breve\``)
-                                ], content: `<@${interaction.user.id}>`,
-                                components: [
-                                    new Discord.ActionRowBuilder()
-                                    .addComponents(
-                                        new Discord.ButtonBuilder()
-                                            .setCustomId(`remove_checkout_product`)
-                                            .setStyle(2)
-                                            .setEmoji('➖'),
-                                        new Discord.ButtonBuilder()
-                                            .setCustomId(`confirm_checkout_product`)
-                                            .setStyle(3)
-                                            .setLabel('Finalizar')
-                                            .setEmoji('✅'),
-                                            new Discord.ButtonBuilder()
-                                            .setCustomId(`add_checkout_product`)
-                                            .setStyle(2)    
-                                            .setEmoji('➕'),
-                                        new Discord.ButtonBuilder()
-                                            .setCustomId(`cancel_checkout`)
-                                            .setStyle(4)
-                                            .setLabel('Cancelar')
-                                            .setEmoji('❌')
-                                    ),
-                            ]
-                            });
-
-                        } else if (interaction2.customId === "add_checkout_product2") {
-                            if (quantity >= row.stocks.length)return interaction2.reply({ content: `🔹 | Você não pode adicionar o stock acima do valor`, ephemeral: true })
-                       
-                            interaction2.update({
-                                embeds: [
-                                    new Discord.EmbedBuilder()
-                                        .setColor(config.client.embed)
-                                        .setTitle(`${config.client.title} | Resumo da Compra`)
-                                        .setDescription(`🔹  | Produto: \`${row.name}\`\n💰 | Valor unitário: \`R$${(row.value * quantity).toFixed(2)}\`\n 📦 | Quantidade: \`${quantity}\`\n✅ | Total: \`R$${(row.value * quantity).toFixed(2)}\`\n\n\n✅ | **Produto no Carrinho:** \`${quantity}\`\n💰 | **Valor a Pagar:** \`R$${(row.value * quantity).toFixed(2)}\`\n🔹 | **Cupom Adicionado:** \`Em breve\``)
-                                ], content: `<@${interaction.user.id}>`,
-                                components: [
-                                    new Discord.ActionRowBuilder()
-                                    .addComponents(
-                                        new Discord.ButtonBuilder()
-                                            .setCustomId(`remove_checkout_product`)
-                                            .setStyle(2)
-                                            .setEmoji('➖'),
-                                        new Discord.ButtonBuilder()
-                                            .setCustomId(`confirm_checkout_product`)
-                                            .setStyle(3)
-                                            .setLabel('Finalizar')
-                                            .setEmoji('✅'),
-                                            new Discord.ButtonBuilder()
-                                            .setCustomId(`add_checkout_product`)
-                                            .setStyle(2)    
-                                            .setEmoji('➕'),
-                                        new Discord.ButtonBuilder()
-                                            .setCustomId(`cancel_checkout`)
-                                            .setStyle(4)
-                                            .setLabel('Cancelar')
-                                            .setEmoji('❌')
-                                    ),
-                            ]
-                            });
-                    
-                        } else if (interaction2.customId === "add_checkout_product") {
-                            if (quantity >= row.stocks.length) return interaction2.reply({ content: `🔹 | Você não pode adicionar o stock acima do valor`, ephemeral: true })
-                            
-                            
-                            quantity += 1;
-
-                            product_price = row.value * quantity;
-
-                            interaction2.update({
-                                embeds: [
-                                    new Discord.EmbedBuilder()
-                                        .setColor(config.client.embed)
-                                        .setTitle(`${config.client.title} | Resumo da Compra`)
-                                        .setDescription(`🔹  | Produto: \`${row.name}\`\n💰 | Valor unitário: \`R$${(row.value * quantity).toFixed(2)}\`\n 📦 | Quantidade: \`${quantity}\`\n✅ | Total: \`R$${(row.value * quantity).toFixed(2)}\`\n\n\n✅ | **Produto no Carrinho:** \`${quantity}\`\n💰 | **Valor a Pagar:** \`R$${(row.value * quantity).toFixed(2)}\`\n🔹 | **Cupom Adicionado:** \`Em breve\``)
-                                ], content: `<@${interaction.user.id}>`,
-                                components: [
-                                    new Discord.ActionRowBuilder()
-                                    .addComponents(
-                                        new Discord.ButtonBuilder()
-                                            .setCustomId(`remove_checkout_product`)
-                                            .setStyle(2)
-                                            .setEmoji('➖'),
-                                        new Discord.ButtonBuilder()
-                                            .setCustomId(`confirm_checkout_product`)
-                                            .setStyle(3)
-                                            .setLabel('Finalizar')
-                                            .setEmoji('✅'),
-                                            new Discord.ButtonBuilder()
-                                            .setCustomId(`add_checkout_product`)
-                                            .setStyle(2)    
-                                            .setEmoji('➕'),
-                                        new Discord.ButtonBuilder()
-                                            .setCustomId(`cancel_checkout`)
-                                            .setStyle(4)
-                                            .setLabel('Cancelar')
-                                            .setEmoji('❌')
-                                    ),
-                            ]
-                            });
-                        } else if (interaction2.customId === "cancel_checkout") {
-                            interaction2.channel.delete().then(() => {
-                                interaction2.user.send({
-                                    embeds: [
-                                        new Discord.EmbedBuilder()
-                                            .setColor(config.client.embed)
-                                            .setTitle(`${config.client.title} | Compra Cancelada`)
-                                            .setDescription(`Olá ${interaction.user} \n\n • Você cancelou a compra, e todos os produtos foram devolvido para o estoque. Você pode voltar a comprar quando quiser!`)
-                                
-                                    ]
-                                })
-                            })
-                            
-                        } else if (interaction2.customId === "confirm_checkout_product") {
-                            interaction2.message.delete()
-                            interaction2.channel.send({
-                                embeds: [
-                                    new Discord.EmbedBuilder()
-                                        .setColor(config.client.embed)
-                                        .setTitle(`${config.client.title} | Sistema de Pagamento`)
-                                        .setDescription(`\`\`\`Efetue o pagamento Utilizando a Chave Pix ou QR Code.\`\`\``)
-                                        .addFields([
-                                            { name: '🔹  | Produto', value: `${row.name}`, inline: false },
-                                            { name: '💰 | Preço', value: `R$${(row.value * quantity).toFixed(2)}`, inline: true },
-                                        ])
-                                ], content: `<@${interaction.user.id}>`,
-                                components: [
-                                    new Discord.ActionRowBuilder()
-                                        .addComponents(
-                                            new Discord.ButtonBuilder()
-                                                .setCustomId(`codigo`)
-                                                .setStyle(1)
-                                                .setEmoji("💳")
-                                                .setLabel('Pix'),
-                                            new Discord.ButtonBuilder()
-                                                .setCustomId(`qrcode_checkout_product1`)
-                                                .setStyle(1)
-                                                .setEmoji("📱")
-                                                .setLabel('Qr Code'),
-                                                new Discord.ButtonBuilder()
-                                                .setCustomId(`confirm_payment_checkout`)
-                                                .setStyle(3)
-                                                .setEmoji("✅")
-                                                .setLabel('Aprovar'),
-                                            new Discord.ButtonBuilder()
-                                                .setCustomId(`cancel_checkout`)
-                                                .setStyle(4)
-                                                .setEmoji("🗑️"),
-                                        
-                                        ),
-                                ]
-                            }).then(async msg => {
-                                interaction2.channel.edit({
-                                    permissionOverwrites: [
-                                        {
-                                            id: interaction2.guild.id,
-                                            deny: ["ViewChannel"]
-                                        },
-                                        {
-                                            id: interaction2.user.id,
-                                            allow: ["ViewChannel", "SendMessages", "AttachFiles"],
-                                            deny: ["AddReactions"]
-                                        }
-                                    ]
-                                })
-                                const collector = msg.createMessageComponentCollector();
-
-                                collector.on('collect', async interaction => {
-                                    if (interaction.customId === "qrcode_checkout_product1") {
-                                        return interaction.reply({
-                                            files: [new Discord.AttachmentBuilder(require("path").join(__dirname, "../public/pix.png"))],
-                                            embeds: [
-                                                new Discord.EmbedBuilder()
-                                                    .setColor(config.client.embed)
-                                                    .setImage(config.sales.banco.qrcode)
-                                            ],   ephemeral: true
-                                        })
-
-                                    } else if (interaction.customId === "codigo") {
-                                        return interaction.reply({
-                                            embeds: [
-                                                new Discord.EmbedBuilder()
-                                                    .setTitle(`Forma de Pagamento`)
-                                                    .setThumbnail(`${config.client.foto}`)
-                                                    .setDescription(`🔑** | Tipo de Chave:**\n${config.sales.banco.tipochave} \n💳** | Chave Pix:**\n${config.sales.banco.ChaveAleatória}\n\n📋 **PIX Copia e Cola:**\n\`\`\`${config.sales.banco.copia_cola}\`\`\``)
-                                                    .setFooter({ text: `${config.client.title} Todos os direitos reservados.`, iconURL: `${config.client.foto}` })
-                                                    .setColor(config.client.embed)
-                                            ],
-                                            ephemeral: true
-                                        })
-
-                                    } else if (interaction.customId === "cancel_checkout") {
-                                        interaction.channel.delete().then(() => {
-                                            interaction.user.send({
-                                                embeds: [
-                                                    new Discord.EmbedBuilder()
-                                                        .setColor(config.client.embed)
-                                                        .setTitle(`${config.client.title} | Compra Cancelada`)
-                                                        .setDescription(`Olá ${interaction.user} \n\n • Você cancelou a compra, e todos os produtos foram devolvido para o estoque. Você pode voltar a comprar quando quiser!`)
-                                                        
-                                                ]
-                                            })
-                                        })
-                                    } else if (interaction.customId === "confirm_payment_checkout") {
-                                        if (!interaction.member.roles.cache.get(config.sales.cargo_aprovar)) return interaction.reply({ content: `Você não tem permissão de aprovar a compra!`, ephemeral: true })
-
-                                        if (row.stocks.length < quantity) return interaction.channel.send({
-                                            embeds: [
-                                                new Discord.EmbedBuilder()
-                                                    .setColor(config.client.embed)
-                                                    .setTitle(`${config.client.title} | Compra aprovada`)
-                                                    .setDescription(`Infelizmente alguem comprou esse produto antes de você, mande mensagem para algum dos staffs e apresente o codigo: \`\`\`[${payment.body.id}]\`\`\``)
-                                            ]
-                                        })
-
-                                            setTimeout(() => msg.delete(),10)
-                                            interaction.channel.send({ content: `
-                                            ✅ | Compra Confirmada`, embeds: [
-                                                new Discord.EmbedBuilder()
-                                                    .setColor(config.client.embed)
-                                                    .setTitle(`⭐ ${config.client.title} | Compra aprovada ⭐`)
-                                                    .setDescription(`${interaction.user} **Compra aprovada com sucesso aguarde um administrador entregar seu produto**`)
-                                                    
-                                            ]})
-                                          
-
-                                        const stocks = row.stocks.slice(0, quantity);
-                                        db.pull(`product_${row.id}.stocks`, stocks)
-
-                                        const owner_id = interaction.channel.name.replace('🛒・', '');
-                                        const user = await interaction.guild.members.fetch(owner_id);
-
-                                        if (!user.roles.cache.get(config.sales.cargo_cliente)) user.roles.add(config.sales.cargo_cliente);
-
-                                        user.send({
-                                            embeds: [
-                                                new Discord.EmbedBuilder()
-                                                    .setColor(config.client.embed)
-                                                    .setTitle(`⭐ ${config.client.title} | Compra aprovada ⭐`)
-                                                    .setDescription(`
-                                                         📦 | **Seu Produto(s):**
-                                                         \`\`\`${stocks.join('\n')}\`\`\`\
-                                                         🔹 | **ID da compra:** 
-                                                         ${protocol}
-                                                `)
-                                                .setFooter({ text: `${config.client.title} Agradece a sua preferência!` })
-                                            ]
-                                        })
-
-                                        const channel = interaction.guild.channels.cache.get(config.sales.logs_compras);
-                                        channel.send({
-                                            embeds: [
-                                                new Discord.EmbedBuilder()
-                                                    .setColor(config.client.embed)
-                                                    .setTitle(`${config.client.title} | Compra Aprovada`)
-                                                    .setThumbnail(`${config.client.foto}`)
-                                                  
-                                                    .setFooter({ text: `${config.client.title} - Todos os direitos reservados` })
-                                                    .addFields([
-                                                        { name: `🔹 | Comprador`, value: `${user.user.tag}` },
-                                                        { name: `🛒 | Produto:`, value: `${row.name}` },
-                                                        { name: `💰 | Valor Pago:`, value: `R$${product_price.toFixed(2)}` },
-                                                        { name: `🔹 | Quantidade:`, value: `${quantity}x` },
-                                                        { name: '⭐ | Avaliação:', value: `⭐ ⭐ ⭐ ⭐ ⭐ (5)` },
-                                                        { name: ' | Data da compra:', value: `(${moment().format('LLLL')})` }
-                                                    ])
-                                            ]
-                                            
-                                        })
-                                        
-                                        setTimeout(() => interaction.channel.delete(), 50000)
-                                        dbJson.add("pedidostotal", 1)
-                                        dbJson.add("gastostotal", product_price)
-                                        dbJson.add(`${moment().utc().tz('America/Sao_Paulo').format('D/M/Y')}.pedidos`, 1)
-                                        dbJson.add(`${moment().utc().tz('America/Sao_Paulo').format('D/M/Y')}.compras`, product_price)
-                                        dbJson.add(`${interaction2.user.id}.compras`, product_price)
-                                        dbJson.add(`${interaction2.user.id}.pedidos`, 1)
-                                    }
-                                })
-                            })
-                        }
-                    })
-                })
-            })
-        }
-    }
+const D = require('discord.js');
+const { randomUUID } = require('node:crypto');
+const path = require('node:path');
+const config = require('../config.json');
+const locks = new Set();
+const ephemeral = { ephemeral: true, allowedMentions: { parse: [] } };
+const money = value => `R$ ${value.toFixed(2)}`;
+function staff(i) { return i.member.roles.cache.has(config.sales.cargo_aprovar); }
+function buttons(order) {
+  const row = new D.ActionRowBuilder();
+  if (order.status === 'pending') row.addComponents(
+    new D.ButtonBuilder().setCustomId(`service:pix:${order.id}`).setLabel('PIX Copia e Cola').setEmoji('💳').setStyle(1),
+    new D.ButtonBuilder().setCustomId(`service:qr:${order.id}`).setLabel('QR Code').setEmoji('📱').setStyle(1),
+    new D.ButtonBuilder().setCustomId(`service:approve:${order.id}`).setLabel('Aprovar pagamento').setEmoji('✅').setStyle(3),
+    new D.ButtonBuilder().setCustomId(`service:cancel:${order.id}`).setLabel('Cancelar pedido').setStyle(4)
+  );
+  if (order.status === 'paid') row.addComponents(new D.ButtonBuilder().setCustomId(`service:complete:${order.id}`).setLabel('Concluir atendimento').setEmoji('🏁').setStyle(3));
+  return row.components.length ? [row] : [];
 }
+function panel(order) {
+  const statuses = { pending: 'Aguardando pagamento', paid: 'Pagamento aprovado — atendimento aberto', completed: 'Serviço concluído', cancelled: 'Pedido cancelado' };
+  return {
+    embeds: [new D.EmbedBuilder().setColor(config.client.embed).setTitle(`${config.client.title} | Encomenda`)
+      .addFields({ name: 'Serviço', value: order.name }, { name: 'Valor combinado para este pacote', value: money(order.price) },
+        { name: 'Solicitação do cliente', value: order.details }, { name: 'Status', value: statuses[order.status] })
+      .setDescription(order.status === 'pending' ? 'A equipe deve confirmar o escopo e o prazo antes do pagamento. Pague apenas após esse acordo. Confira o valor no PIX: o QR Code não tem valor fixo. Alterações fora do pacote podem exigir outro orçamento.' : 'Use este canal para conversar com a equipe e receber a entrega. Não envie tokens ou senhas.')
+      .setFooter({ text: `Pedido ${order.id}` })],
+    components: buttons(order), allowedMentions: { parse: [] }
+  };
+}
+async function release(order) {
+  const key = `service_active_${order.guild}_${order.customer}`;
+  if (await db.get(key) === order.id) await db.delete(key);
+}
+async function refresh(i, order) {
+  const message = await i.channel.messages.fetch(order.message);
+  await message.edit(panel(order));
+}
+module.exports = {
+  name: 'startCheckout',
+  async execute(i) {
+    try {
+      if (i.isButton() && i.customId.startsWith('sales-')) {
+        const product = await db.get(`product_${i.customId.slice(6)}`);
+        if (!product) return i.reply({ ...ephemeral, content: 'Serviço não encontrado. Peça à equipe para publicar o painel novamente.' });
+        const modal = new D.ModalBuilder().setCustomId(`service_request:${product.id}`).setTitle('Solicitar bot personalizado');
+        modal.addComponents(new D.ActionRowBuilder().addComponents(new D.TextInputBuilder().setCustomId('details')
+          .setLabel('O que você quer no seu bot?').setStyle(D.TextInputStyle.Paragraph).setRequired(true).setMinLength(10).setMaxLength(1000)
+          .setPlaceholder('Tipo de bot, comandos, cores e funcionalidades. Não envie tokens ou senhas.')));
+        return i.showModal(modal);
+      }
+      if (i.isModalSubmit() && i.customId.startsWith('service_request:')) {
+        await i.deferReply(ephemeral);
+        const key = `service_active_${i.guildId}_${i.user.id}`;
+        if (locks.has(key)) return i.editReply('Seu pedido está sendo criado. Aguarde.');
+        locks.add(key);
+        let channel;
+        try {
+          const active = await db.get(key);
+          if (active) {
+            const existing = await db.get(`service_order_${active}`);
+            if (existing && ['pending', 'paid'].includes(existing.status)) {
+              const current = await i.guild.channels.fetch(existing.channel);
+              if (current) return i.editReply(`Você já tem um pedido aberto em <#${existing.channel}>.`);
+            }
+            await db.delete(key);
+          }
+          const product = await db.get(`product_${i.customId.split(':')[1]}`);
+          if (!product || !Number.isFinite(product.value) || product.value <= 0) return i.editReply('Serviço indisponível ou preço inválido. Avise a equipe.');
+          if (!config.sales.categoria_carrinho || !config.sales.cargo_aprovar || !config.sales.logs_compras) return i.editReply('A equipe precisa configurar a categoria, o cargo de atendimento e o canal de registros.');
+          const id = randomUUID();
+          channel = await i.guild.channels.create({ name: `pedido-${i.user.id}`, type: D.ChannelType.GuildText, parent: config.sales.categoria_carrinho,
+            permissionOverwrites: [
+              { id: i.guildId, deny: [D.PermissionFlagsBits.ViewChannel] },
+              { id: i.user.id, allow: [D.PermissionFlagsBits.ViewChannel, D.PermissionFlagsBits.SendMessages, D.PermissionFlagsBits.AttachFiles, D.PermissionFlagsBits.ReadMessageHistory] },
+              { id: config.sales.cargo_aprovar, allow: [D.PermissionFlagsBits.ViewChannel, D.PermissionFlagsBits.SendMessages, D.PermissionFlagsBits.AttachFiles, D.PermissionFlagsBits.ReadMessageHistory] },
+              { id: i.client.user.id, allow: [D.PermissionFlagsBits.ViewChannel, D.PermissionFlagsBits.SendMessages, D.PermissionFlagsBits.EmbedLinks, D.PermissionFlagsBits.AttachFiles, D.PermissionFlagsBits.ReadMessageHistory, D.PermissionFlagsBits.ManageChannels] }
+            ] });
+          const order = { id, guild: i.guildId, channel: channel.id, customer: i.user.id, product: product.id, name: product.name, price: product.value,
+            details: i.fields.getTextInputValue('details'), status: 'pending', createdAt: Date.now() };
+          const message = await channel.send(panel(order));
+          order.message = message.id;
+          await db.set(`service_order_${id}`, order);
+          await db.set(key, id);
+          await i.editReply(`✅ Pedido aberto em <#${channel.id}>. Combine o escopo e o prazo com a equipe antes de pagar.`);
+        } catch (error) {
+          // Remove only a newly created channel if no durable order was saved.
+          if (channel && !await db.get(key)) await channel.delete().catch(() => {});
+          throw error;
+        } finally { locks.delete(key); }
+        return;
+      }
+      if (!i.isButton() || !i.customId.startsWith('service:')) return;
+      const [, action, id] = i.customId.split(':');
+      const order = await db.get(`service_order_${id}`);
+      if (!order || order.guild !== i.guildId || order.channel !== i.channelId) return i.reply({ ...ephemeral, content: 'Pedido não encontrado neste canal.' });
+      const isStaff = staff(i);
+      if (i.user.id !== order.customer && !isStaff) return i.reply({ ...ephemeral, content: 'Esse pedido pertence a outro cliente.' });
+      if (['approve', 'complete'].includes(action) && !isStaff) return i.reply({ ...ephemeral, content: 'Somente a equipe autorizada pode aprovar pagamentos ou concluir serviços.' });
+      if (action === 'pix' || action === 'qr') {
+        if (order.status !== 'pending') return i.reply({ ...ephemeral, content: 'Esse pedido não está aguardando pagamento.' });
+        if (action === 'qr') return i.reply({ ...ephemeral, content: `Informe ${money(order.price)} ao pagar. Aguarde a confirmação do escopo pela equipe.`, files: [new D.AttachmentBuilder(path.join(__dirname, '../public/pix.png'))] });
+        return i.reply({ ...ephemeral, content: `💳 ${config.sales.banco.tipochave}: ${config.sales.banco.ChaveAleatória}\nValor: ${money(order.price)}\nPIX Copia e Cola:\n${config.sales.banco.copia_cola}\nAguarde a confirmação do escopo pela equipe antes de pagar.` });
+      }
+      await i.deferReply(ephemeral);
+      if (locks.has(id)) return i.editReply('Este pedido está sendo atualizado. Aguarde.');
+      locks.add(id);
+      try {
+        const current = await db.get(`service_order_${id}`);
+        if (action === 'approve') {
+          if (current.status !== 'pending') return i.editReply('Esse pedido já foi aprovado ou encerrado.');
+          current.status = 'paid'; current.approvedBy = i.user.id; current.paidAt = Date.now();
+          await db.set(`service_order_${id}`, current);
+          await refresh(i, current);
+          await i.editReply('✅ Pagamento aprovado. O canal continua aberto para atendimento e entrega.');
+          if (config.sales.cargo_cliente) {
+            try { const member = await i.guild.members.fetch(current.customer); await member.roles.add(config.sales.cargo_cliente); }
+            catch (error) { console.error('Falha ao entregar cargo Cliente:', error.message); await i.followUp({ ...ephemeral, content: 'Pagamento registrado, mas não consegui entregar o cargo Cliente. Confira a hierarquia e Gerenciar cargos.' }); }
+          }
+          try {
+            const logs = await i.guild.channels.fetch(config.sales.logs_compras);
+            await logs.send({ content: `✅ Pedido ${id} aprovado por <@${i.user.id}>. Cliente: <@${current.customer}>. Serviço: ${current.name}. Valor: ${money(current.price)}. Atendimento: <#${current.channel}>.`, allowedMentions: { parse: [] } });
+          } catch (error) { console.error('Falha no registro do pedido:', error.message); await i.followUp({ ...ephemeral, content: 'Pagamento registrado, mas o envio ao canal de registros falhou. Confira as permissões.' }); }
+        } else if (action === 'cancel' || action === 'complete') {
+          const expected = action === 'cancel' ? 'pending' : 'paid';
+          if (current.status !== expected) return i.editReply('O estado atual não permite essa ação. Pedidos pagos só podem ser concluídos pela equipe.');
+          // Lock customer messages while preserving the channel and its history.
+          await i.channel.permissionOverwrites.edit(current.customer, { SendMessages: false, AttachFiles: false });
+          current.status = action === 'cancel' ? 'cancelled' : 'completed'; current.closedAt = Date.now();
+          await db.set(`service_order_${id}`, current);
+          await release(current);
+          await refresh(i, current);
+          await i.editReply(action === 'cancel' ? 'Pedido cancelado. O canal foi preservado para consulta.' : 'Atendimento concluído. O canal foi preservado para consulta.');
+        } else await i.editReply('Ação desconhecida.');
+      } finally { locks.delete(id); }
+    } catch (error) {
+      console.error('Falha no pedido de serviço:', error.message);
+      try {
+        const content = 'Não consegui concluir esta ação. O pedido pode ter sido registrado; consulte o canal e os logs antes de repetir.';
+        if (i.deferred) await i.editReply(content); else if (!i.replied) await i.reply({ ...ephemeral, content });
+      } catch {}
+    }
+  }
+};

@@ -3,7 +3,7 @@ const config = require('../../config.json')
 
 module.exports = {
     name: "criar", // Coloque o nome do comando
-    description: "📱 [Produto] Adicionar novo produto a venda", // Coloque a descrição do comando
+    description: "📱 [Produto] Adicionar novo serviço a venda", // Coloque a descrição do comando
     type: Discord.ApplicationCommandType.ChatInput,
 
     run: async (client, interaction) => {
@@ -16,8 +16,8 @@ module.exports = {
             embeds: [
                 new Discord.EmbedBuilder()
                     .setColor(config.client.embed)
-                    .setTitle('Cadastrar produto')
-                    .setDescription('Para cadastrar um novo produto, use o **botão** abaixo, e preencha as informações a seguir.')
+                    .setTitle('Cadastrar serviço')
+                    .setDescription('Para cadastrar um novo serviço, use o **botão** abaixo, e preencha as informações a seguir.')
             ],
             components: [
                 new Discord.ActionRowBuilder()
@@ -25,7 +25,7 @@ module.exports = {
                         new Discord.ButtonBuilder()
                             .setCustomId('create_product')
                             .setEmoji('➕')
-                            .setLabel('Criar produto')
+                            .setLabel('Criar serviço')
                             .setStyle(3)
                     )
             ],

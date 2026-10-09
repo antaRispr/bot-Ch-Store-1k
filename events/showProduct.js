@@ -14,7 +14,7 @@ module.exports = {
             const product_id = interaction.values[0];
 
             const row = await db.get(`product_${product_id}`);
-            if (row.length < 1) return interaction.reply({
+            if (!row) return interaction.reply({
                 embeds: [
                     new Discord.EmbedBuilder()
                         .setColor(config.client.embed)
@@ -28,11 +28,11 @@ module.exports = {
                 embeds: [
                     new Discord.EmbedBuilder()
                         .setColor(config.client.embed)
-                        .setTitle(`${config.client.title} | Produto`)
+                        .setTitle(`${config.client.title} | Serviço personalizado`)
                         .setThumbnail(`${config.client.foto}`)
                         .setImage(`${config.client.banner}`)
                       
-                        .setDescription(`\`\`\`${row.body}\`\`\` \n🔹  | **Nome:** **${row.name}** \n💰 | **Preço:** **R$${row.value.toFixed(2)}** \n📦 | **Estoque:** **${row.stocks ? row.stocks.length : 0}**`)
+                        .setDescription(`\`\`\`${row.body}\`\`\` \n🔹  | **Nome:** **${row.name}** \n💰 | **Preço:** **R$${row.value.toFixed(2)}** \n🛠️ | **Produção sob encomenda**\nCombine o escopo e o prazo com a equipe antes de pagar.`)
                         
                 ],
                 components: [
@@ -42,7 +42,7 @@ module.exports = {
                                 .setCustomId(`sales-${product_id}`)
                                 .setStyle(3)
                                 .setEmoji('🛒')
-                                .setLabel('Comprar')
+                                .setLabel('Solicitar serviço')
                         )
                 ]
             })
@@ -54,7 +54,7 @@ module.exports = {
 
             db.set(`product_${product_id}.channel`, data)
 
-            return interaction.reply({ content: '✅ | Produto exibido com sucesso!', ephemeral: true })
+            return interaction.reply({ content: '✅ | Serviço exibido com sucesso!', ephemeral: true })
         }
     }
 }

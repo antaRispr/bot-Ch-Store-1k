@@ -3,7 +3,7 @@ const config = require('../../config.json');
 
 module.exports = {
     name: "gerenciar", // Coloque o nome do comando
-    description: "📱 [Gerenciar] um produto da loja", // Coloque a descrição do comando
+    description: "📱 [Gerenciar] um serviço da loja", // Coloque a descrição do comando
     type: Discord.ApplicationCommandType.ChatInput,
 
     run: async (client, interaction) => {
@@ -33,7 +33,7 @@ module.exports = {
             embeds: [
                 new Discord.EmbedBuilder()
                     .setColor(config.client.embed)
-                    .setTitle('Exibir produto')
+                    .setTitle('Exibir serviço')
                     .setDescription('Selecione um produto no **menu** abaixo.\nAssim para gerenciar o produto.')
             ],
             components: [

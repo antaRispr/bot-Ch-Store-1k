@@ -125,7 +125,9 @@ setInterval(async () => {
         if (!product.value.channel) return;
 
         const channel = await client.channels.cache.get(product.value.channel.channelId)
-        const message = await channel.messages.fetch(product.value.channel.messageId).catch(() => { })
+        if (!channel) return;
+        const message = await channel.messages.fetch(product.value.channel.messageId).catch(() => null);
+        if (!message) return;
 
         try {
             message.edit({
@@ -133,8 +135,8 @@ setInterval(async () => {
                     new Discord.EmbedBuilder()
                         .setColor(config.client.embed)
                         .setImage(`${config.client.banner}`)
-                        .setTitle(`${config.client.title} | Produto`)
-                        .setDescription(`\`\`\`${product.value.body}\`\`\` \n🔹  | **Nome:** **${product.value.name}** \n💰 | **Preço:** **R$${product.value.value.toFixed(2)}** \n📦 | **Estoque:** **${product.value.stocks ? product.value.stocks.length : 0}**`)
+                        .setTitle(`${config.client.title} | Serviço personalizado`)
+                        .setDescription(`\`\`\`${product.value.body}\`\`\` \n🔹  | **Nome:** **${product.value.name}** \n💰 | **Preço:** **R$${product.value.value.toFixed(2)}** \n🛠️ | **Produção sob encomenda**\nCombine o escopo e o prazo com a equipe antes de pagar.`)
                         
                 ],
                 components: [
@@ -144,12 +146,12 @@ setInterval(async () => {
                                 .setCustomId(`sales-${product.value.id}`)
                                 .setStyle(3)
                                 .setEmoji('🛒')
-                                .setLabel('Comprar')
+                                .setLabel('Solicitar serviço')
                         )
                 ]
             })
         } catch (error) {
-v
+            console.error("Falha ao atualizar painel de serviço:", error.message);
         }
     });
 }, 60000);

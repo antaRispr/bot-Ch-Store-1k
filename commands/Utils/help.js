@@ -16,10 +16,10 @@ run: async (client, interaction, args) => {
     
     📚 **Comandos Gerais:**
     📌 | /help - Exibe está mensagem
-    📌 | /add-stock - Adicionar estoque aos produtos!
-    📌 | /criar - Adicionar novo produto a venda!
-    📌 | /set - Exibir produto para compra!
-    📌 | /gerenciar - Gerenciar um produto da loja
+    📌 | /add-stock - Serviços por encomenda não usam estoque.
+    📌 | /criar - Adicionar novo serviço a venda!
+    📌 | /set - Exibir serviço para compra!
+    📌 | /gerenciar - Gerenciar um serviço da loja
     📌 | /limpardm - Limpa a sua dm
     
     🛡️ **Comandos de Moderação:**

@@ -3,7 +3,7 @@ const config = require('../../config.json')
 
 module.exports = {
     name: "set", // Coloque o nome do comando
-    description: "📱 [Exibir] produto para compra!", // Coloque a descrição do comando
+    description: "📱 [Exibir] serviço por encomenda!", // Coloque a descrição do comando
     type: Discord.ApplicationCommandType.ChatInput,
 
     run: async (client, interaction) => {
@@ -19,7 +19,7 @@ module.exports = {
             embeds: [
                 new Discord.EmbedBuilder()
                     .setColor(config.client.embed)
-                    .setDescription('Não há produtos cadastrados no momento.\nUtilize \`/addproduct\` para começar.')
+                    .setDescription('Não há produtos cadastrados no momento.\nUtilize \`/criar\` para começar.')
             ]
         })
 
@@ -33,8 +33,8 @@ module.exports = {
             embeds: [
                 new Discord.EmbedBuilder()
                     .setColor(config.client.embed)
-                    .setTitle('Exibir produto')
-                    .setDescription('Selecione um produto no **menu** abaixo.\nAssim enviando o painel de compra neste canal.')
+                    .setTitle('Exibir serviço')
+                    .setDescription('Selecione um produto no **menu** abaixo.\nAssim enviando o painel de encomenda neste canal.')
             ],
             components: [
                 new Discord.ActionRowBuilder()
