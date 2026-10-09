@@ -1,0 +1,28 @@
+{
+  "name": "ch-store",
+  "version": "1.0.0",
+  "description": "Bot de vendas da Ch store",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@discordjs/voice": "^0.19.2",
+    "better-sqlite3": "^12.11.1",
+    "discord": "^0.8.2",
+    "discord-player": "^5.3.1",
+    "discord.js": "^14.9.0",
+    "ip": "^1.1.8",
+    "mercadopago": "^1.5.14",
+    "moment": "^2.29.4",
+    "moment-timezone": "^0.5.38",
+    "mysql": "^2.18.1",
+    "quick.db": "^9.0.6",
+    "sourcebin": "^5.0.0",
+    "util": "^0.12.5",
+    "wio.db": "^4.0.22"
+  }
+}

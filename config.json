@@ -1,0 +1,26 @@
+{
+  "client": {
+    "token": "",
+    "embed": "#00ff00",
+    "foto": "https://cdn.discordapp.com/attachments/1237906562874347602/1558037165416513596/oOBp_CzCBlahJZtC.png?ex=6ac9faaf&is=6ac8a92f&hm=0009b4c13107cd0710015145566299c3f94929a8f7d7533696d894d80a3eb81b",
+    "banner": "https://cdn.discordapp.com/attachments/1237906562874347602/1558037165416513596/oOBp_CzCBlahJZtC.png?ex=6ac9faaf&is=6ac8a92f&hm=0009b4c13107cd0710015145566299c3f94929a8f7d7533696d894d80a3eb81b",
+    "title": "Ch store",
+    "title2": "Ch store",
+    "canaldevoz": "",
+    "channel_bugs": "",
+    "owner_id": "",
+    "categoria_tickets": "",
+    "canal_sugestoes": ""
+  },
+  "sales": {
+    "categoria_carrinho": "",
+    "logs_compras": "",
+    "cargo_cliente": "",
+    "cargo_aprovar": "",
+    "banco": {
+      "qrcode": "",
+      "ChaveAleatória": "",
+      "tipochave": ""
+    }
+  }
+}

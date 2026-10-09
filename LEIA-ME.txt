@@ -1,0 +1,7 @@
+Ch store
+
+Configure os IDs do seu servidor em config.json, incluindo categoria_tickets e canal_sugestoes. Configure também seus dados PIX em sales.banco.
+Defina o token em DISCORD_BOT_TOKEN; não coloque credenciais no GitHub.
+Execute npm install e npm start na pasta do projeto. Ative os intents necessários no Discord Developer Portal.
+Produtos, estoque e histórico começam vazios. A aplicação criará o banco SQLite.
+O link da imagem do Discord pode expirar; substitua-o por uma URL permanente quando necessário.
