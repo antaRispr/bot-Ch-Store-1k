@@ -13,20 +13,25 @@ module.exports = {
                 ephemeral: true,
             })
             
+            await interaction.deferReply({ ephemeral: true });
             var row = await db.all();
 
             row = row.filter(p => p.id.startsWith('product_'));
+
+            if (row.length === 0) {
+                return interaction.editReply({ content: '📦 Nenhum produto cadastrado. Use /criar para cadastrar um produto antes de adicionar estoque.' });
+            }
 
             const options = [];
             row.forEach(product => {
                 options.push({ label: `${product.value.name} [R$${product.value.value.toFixed(2)}]`, value: `${product.value.id}` })
             });
 
-            return interaction.reply({
+            return interaction.editReply({
                 embeds: [
                     new Discord.EmbedBuilder()
                         .setColor(config.client.embed)
-                        .setTitle('Ecsolha um produto')
+                        .setTitle('Escolha um produto')
                         .setDescription('Escolha um produto que você deseja adicionar o estoque!')
                 ],
                 components: [
@@ -37,8 +42,7 @@ module.exports = {
                                 .setPlaceholder('Escolha um produto para adicionar o estoque!')
                                 .addOptions(options)
                         )
-                ],
-                ephemeral: true
+                ]
             })
         }
 
