@@ -21,9 +21,9 @@ function panel(order) {
   const statuses = { pending: 'Aguardando pagamento', paid: 'Pagamento aprovado — atendimento aberto', completed: 'Serviço concluído', cancelled: 'Pedido cancelado' };
   return {
     embeds: [new D.EmbedBuilder().setColor(config.client.embed).setTitle(`${config.client.title} | Encomenda`)
-      .addFields({ name: 'Serviço', value: order.name }, { name: 'Valor combinado para este pacote', value: money(order.price) },
-        { name: 'Solicitação do cliente', value: order.details }, { name: 'Status', value: statuses[order.status] })
-      .setDescription(order.status === 'pending' ? 'A equipe deve confirmar o escopo e o prazo antes do pagamento. Pague apenas após esse acordo. Confira o valor no PIX: o QR Code não tem valor fixo. Alterações fora do pacote podem exigir outro orçamento.' : 'Use este canal para conversar com a equipe e receber a entrega. Não envie tokens ou senhas.')
+      .addFields({ name: 'Serviço', value: order.name }, { name: 'Valor', value: money(order.price) },
+        { name: 'Seu pedido', value: order.details }, { name: 'Status', value: statuses[order.status] })
+      .setDescription(order.status === 'pending' ? 'Combine os detalhes e o prazo com a equipe antes de pagar. Ao fazer o PIX, informe o valor do pedido.' : 'Acompanhe seu pedido e converse com a equipe neste canal.')
       .setFooter({ text: `Pedido ${order.id}` })],
     components: buttons(order), allowedMentions: { parse: [] }
   };
@@ -46,7 +46,7 @@ module.exports = {
         const modal = new D.ModalBuilder().setCustomId(`service_request:${product.id}`).setTitle('Solicitar bot personalizado');
         modal.addComponents(new D.ActionRowBuilder().addComponents(new D.TextInputBuilder().setCustomId('details')
           .setLabel('O que você quer no seu bot?').setStyle(D.TextInputStyle.Paragraph).setRequired(true).setMinLength(10).setMaxLength(1000)
-          .setPlaceholder('Tipo de bot, comandos, cores e funcionalidades. Não envie tokens ou senhas.')));
+          .setPlaceholder('Descreva as funcionalidades, os comandos e o visual que você deseja.')));
         return i.showModal(modal);
       }
       if (i.isModalSubmit() && i.customId.startsWith('service_request:')) {
@@ -119,7 +119,21 @@ module.exports = {
           }
           try {
             const logs = await i.guild.channels.fetch(config.sales.logs_compras);
-            await logs.send({ content: `✅ Pedido ${id} aprovado por <@${i.user.id}>. Cliente: <@${current.customer}>. Serviço: ${current.name}. Valor: ${money(current.price)}. Atendimento: <#${current.channel}>.`, allowedMentions: { parse: [] } });
+            await logs.send({
+              embeds: [new D.EmbedBuilder()
+                .setColor(config.client.embed)
+                .setTitle('Pagamento aprovado')
+                .addFields(
+                  { name: 'Cliente', value: `<@${current.customer}>`, inline: true },
+                  { name: 'Responsável', value: `<@${i.user.id}>`, inline: true },
+                  { name: 'Serviço', value: current.name },
+                  { name: 'Valor', value: money(current.price), inline: true },
+                  { name: 'Atendimento', value: `<#${current.channel}>`, inline: true }
+                )
+                .setFooter({ text: `${config.client.title} • Pedido ${id}` })
+                .setTimestamp(current.paidAt)],
+              allowedMentions: { parse: [] }
+            });
           } catch (error) { console.error('Falha no registro do pedido:', error.message); await i.followUp({ ...ephemeral, content: 'Pagamento registrado, mas o envio ao canal de registros falhou. Confira as permissões.' }); }
         } else if (action === 'cancel' || action === 'complete') {
           const expected = action === 'cancel' ? 'pending' : 'paid';

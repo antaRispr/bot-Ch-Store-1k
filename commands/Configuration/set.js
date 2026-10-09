@@ -34,7 +34,7 @@ module.exports = {
                 new Discord.EmbedBuilder()
                     .setColor(config.client.embed)
                     .setTitle('Exibir serviço')
-                    .setDescription('Selecione um produto no **menu** abaixo.\nAssim enviando o painel de encomenda neste canal.')
+                    .setDescription('Selecione o serviço que deseja publicar neste canal.')
             ],
             components: [
                 new Discord.ActionRowBuilder()

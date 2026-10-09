@@ -31,6 +31,8 @@ test('service without stock opens a persistent private order and prevents a dupl
   reset(); values.set('product_1', { id: '1', name: 'Bot', value: 15 });
   const h = handler(); const click = interaction(); await h.execute(click);
   assert.equal(click.result[0].title, 'Solicitar bot personalizado');
+  const placeholder = click.result[0].components[0].components[0].placeholder;
+  assert(!/tokens|senhas/i.test(placeholder));
   const submit = interaction({ modal: true }); await h.execute(submit);
   assert.equal(channelsCreated.length, 1);
   const orderId = values.get('service_active_guild_buyer');
@@ -50,6 +52,12 @@ test('buyer cannot approve; staff approval survives restart and cannot be charge
   await h.execute(interaction({ action: 'approve', staff: true, user: 'staff' }));
   const paid = values.get('service_order_order'); assert.equal(paid.status, 'paid'); assert.equal(paid.approvedBy, 'staff'); assert(paid.paidAt);
   assert.deepEqual(roleRecipients, ['buyer']); assert.equal(messages.length, 1);
+  const log = messages[0].embeds[0].toJSON();
+  assert.equal(log.title, 'Pagamento aprovado');
+  assert.equal(log.fields.find(field => field.name === 'Cliente').value, '<@buyer>');
+  assert.equal(log.fields.find(field => field.name === 'Valor').value, 'R$ 15.00');
+  assert(log.timestamp);
+  assert.equal(messages[0].content, undefined);
   await handler().execute(interaction({ action: 'approve', staff: true, user: 'staff' }));
   assert.equal(messages.length, 1); assert.deepEqual(roleRecipients, ['buyer']);
   assert.equal(values.get('service_active_guild_buyer'), 'order');

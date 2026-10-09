@@ -135,8 +135,8 @@ setInterval(async () => {
                     new Discord.EmbedBuilder()
                         .setColor(config.client.embed)
                         .setImage(`${config.client.banner}`)
-                        .setTitle(`${config.client.title} | Serviço personalizado`)
-                        .setDescription(`\`\`\`${product.value.body}\`\`\` \n🔹  | **Nome:** **${product.value.name}** \n💰 | **Preço:** **R$${product.value.value.toFixed(2)}** \n🛠️ | **Produção sob encomenda**\nCombine o escopo e o prazo com a equipe antes de pagar.`)
+                        .setTitle(product.value.name)
+                        .setDescription(`${product.value.body}\n\n**R$ ${product.value.value.toFixed(2)}**`)
                         
                 ],
                 components: [

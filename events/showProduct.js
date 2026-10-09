@@ -28,11 +28,11 @@ module.exports = {
                 embeds: [
                     new Discord.EmbedBuilder()
                         .setColor(config.client.embed)
-                        .setTitle(`${config.client.title} | Serviço personalizado`)
+                        .setTitle(row.name)
                         .setThumbnail(`${config.client.foto}`)
                         .setImage(`${config.client.banner}`)
                       
-                        .setDescription(`\`\`\`${row.body}\`\`\` \n🔹  | **Nome:** **${row.name}** \n💰 | **Preço:** **R$${row.value.toFixed(2)}** \n🛠️ | **Produção sob encomenda**\nCombine o escopo e o prazo com a equipe antes de pagar.`)
+                        .setDescription(`${row.body}\n\n**R$ ${row.value.toFixed(2)}**`)
                         
                 ],
                 components: [
