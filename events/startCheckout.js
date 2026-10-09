@@ -301,7 +301,8 @@ module.exports = {
 
                                 collector.on('collect', async interaction => {
                                     if (interaction.customId === "qrcode_checkout_product1") {
-                                        interaction.reply({
+                                        return interaction.reply({
+                                            files: [new Discord.AttachmentBuilder(require("path").join(__dirname, "../public/pix.png"))],
                                             embeds: [
                                                 new Discord.EmbedBuilder()
                                                     .setColor(config.client.embed)
@@ -309,25 +310,13 @@ module.exports = {
                                             ],   ephemeral: true
                                         })
 
-                                        interaction.update({
-                                            embeds: [
-                                                new Discord.EmbedBuilder()
-                                                .setColor(config.client.embed)
-                                                .setTitle(`${config.client.title} | Sistema de Pagamento`)
-                                                .setDescription(`\`\`\`Efetue o pagamento Utilizando a Chave Pix ou QR Code.\`\`\``)
-                                                .addFields([
-                                                    { name: '🔹  | Produto', value: `${row.name}`, inline: false },
-                                                    { name: '💰 | Preço', value: `R$${(row.value * quantity).toFixed(2)}`, inline: true },
-                                                ])
-                                            ],
-                                        })
                                     } else if (interaction.customId === "codigo") {
                                         return interaction.reply({
                                             embeds: [
                                                 new Discord.EmbedBuilder()
                                                     .setTitle(`Forma de Pagamento`)
                                                     .setThumbnail(`${config.client.foto}`)
-                                                    .setDescription(`🔑** | Tipo de Chave:**\n${config.sales.banco.tipochave} \n💳** | Chave Pix:**\n${config.sales.banco.ChaveAleatória}`)
+                                                    .setDescription(`🔑** | Tipo de Chave:**\n${config.sales.banco.tipochave} \n💳** | Chave Pix:**\n${config.sales.banco.ChaveAleatória}\n\n📋 **PIX Copia e Cola:**\n\`\`\`${config.sales.banco.copia_cola}\`\`\``)
                                                     .setFooter({ text: `${config.client.title} Todos os direitos reservados.`, iconURL: `${config.client.foto}` })
                                                     .setColor(config.client.embed)
                                             ],
