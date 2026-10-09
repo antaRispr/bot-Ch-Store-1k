@@ -55,11 +55,11 @@ module.exports = {
 
             const accounts = new Discord.TextInputBuilder()
                 .setCustomId('accounts')
-                .setLabel('Quais são as contas?')
+                .setLabel('Itens para entrega (um por linha)')
                 .setRequired(true)
                 .setMaxLength(4000)
                 .setStyle(2)
-                .setPlaceholder('example@example.com')
+                .setPlaceholder('Um link de download ou código por linha. Não envie tokens ou senhas.')
 
             modal.addComponents(
                 new Discord.ActionRowBuilder().addComponents(accounts)
