@@ -79,3 +79,23 @@ test('another customer cannot access order PIX or cancel it', async () => {
   }
   assert.equal(values.get('service_order_order').status, 'pending');
 });
+
+test('completed channels are closed only by staff after history is saved', async () => {
+  reset(); order('completed'); const h = handler();
+  const buyer = interaction({ action: 'delete' }); let deleted = 0;
+  buyer.channel.delete = async () => { deleted++; };
+  await h.execute(buyer); assert.equal(deleted, 0);
+  const staff = interaction({ action: 'delete', staff: true, user: 'staff' });
+  const D = require('discord.js'); staff.channel.messages.fetch = async () => new D.Collection();
+  staff.channel.delete = async () => { assert.equal(messages.length, 1); assert(messages[0].files.length); deleted++; };
+  await h.execute(staff); assert.equal(deleted, 1); assert(values.get('service_order_order').deletedAt);
+});
+
+test('failed history upload prevents channel deletion', async () => {
+  reset(); order('completed'); const h = handler();
+  const i = interaction({ action: 'delete', staff: true, user: 'staff' }); let deleted = 0;
+  i.channel.messages.fetch = async () => new (require('discord.js').Collection)();
+  i.channel.delete = async () => { deleted++; };
+  i.guild.channels.fetch = async () => ({ send: async () => { throw Error('logs unavailable'); } });
+  await h.execute(i); assert.equal(deleted, 0); assert(!values.get('service_order_order').deletedAt);
+});

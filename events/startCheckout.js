@@ -15,6 +15,7 @@ function buttons(order) {
     new D.ButtonBuilder().setCustomId(`service:cancel:${order.id}`).setLabel('Cancelar pedido').setStyle(4)
   );
   if (order.status === 'paid') row.addComponents(new D.ButtonBuilder().setCustomId(`service:complete:${order.id}`).setLabel('Concluir atendimento').setEmoji('🏁').setStyle(3));
+  if (order.status === 'completed') row.addComponents(new D.ButtonBuilder().setCustomId(`service:close:${order.id}`).setLabel('Fechar canal').setEmoji('🔒').setStyle(4));
   return row.components.length ? [row] : [];
 }
 function panel(order) {
@@ -96,18 +97,31 @@ module.exports = {
       if (!order || order.guild !== i.guildId || order.channel !== i.channelId) return i.reply({ ...ephemeral, content: 'Pedido não encontrado neste canal.' });
       const isStaff = staff(i);
       if (i.user.id !== order.customer && !isStaff) return i.reply({ ...ephemeral, content: 'Esse pedido pertence a outro cliente.' });
-      if (['approve', 'complete'].includes(action) && !isStaff) return i.reply({ ...ephemeral, content: 'Somente a equipe autorizada pode aprovar pagamentos ou concluir serviços.' });
+      if (['approve', 'complete', 'close', 'delete'].includes(action) && !isStaff) return i.reply({ ...ephemeral, content: 'Somente a equipe autorizada pode aprovar pagamentos ou concluir serviços.' });
       if (action === 'pix' || action === 'qr') {
         if (order.status !== 'pending') return i.reply({ ...ephemeral, content: 'Esse pedido não está aguardando pagamento.' });
         if (action === 'qr') return i.reply({ ...ephemeral, content: `Informe ${money(order.price)} ao pagar. Aguarde a confirmação do escopo pela equipe.`, files: [new D.AttachmentBuilder(path.join(__dirname, '../public/pix.png'))] });
         return i.reply({ ...ephemeral, content: `💳 ${config.sales.banco.tipochave}: ${config.sales.banco.ChaveAleatória}\nValor: ${money(order.price)}\nPIX Copia e Cola:\n${config.sales.banco.copia_cola}\nAguarde a confirmação do escopo pela equipe antes de pagar.` });
+      }
+      if (action === 'close') {
+        if (order.status !== 'completed') return i.reply({ ...ephemeral, content: 'Conclua o atendimento antes de fechar o canal.' });
+        return i.reply({ ...ephemeral, content: 'Salvar o histórico no registro de vendas e excluir este canal?', components: [new D.ActionRowBuilder().addComponents(new D.ButtonBuilder().setCustomId(`service:delete:${id}`).setLabel('Confirmar fechamento').setStyle(4))] });
       }
       await i.deferReply(ephemeral);
       if (locks.has(id)) return i.editReply('Este pedido está sendo atualizado. Aguarde.');
       locks.add(id);
       try {
         const current = await db.get(`service_order_${id}`);
-        if (action === 'approve') {
+        if (action === 'delete') {
+          if (current.status !== 'completed') return i.editReply('Conclua o atendimento antes de fechar o canal.');
+          const transcript = await require('../transcript')(i.channel);
+          const logs = await i.guild.channels.fetch(config.sales.logs_compras);
+          await logs.send({ content: `Histórico do pedido ${id}`, files: [new D.AttachmentBuilder(transcript, { name: `pedido-${id}.txt` })], allowedMentions: { parse: [] } });
+          await i.editReply('Histórico salvo. Fechando o canal.');
+          await i.channel.delete('Atendimento concluído pela equipe');
+          current.deletedAt = Date.now();
+          await db.set(`service_order_${id}`, current);
+        } else if (action === 'approve') {
           if (current.status !== 'pending') return i.editReply('Esse pedido já foi aprovado ou encerrado.');
           current.status = 'paid'; current.approvedBy = i.user.id; current.paidAt = Date.now();
           await db.set(`service_order_${id}`, current);
