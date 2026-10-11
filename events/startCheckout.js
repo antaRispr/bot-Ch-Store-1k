@@ -11,7 +11,7 @@ function buttons(order) {
   if (order.status === 'pending') row.addComponents(
     new D.ButtonBuilder().setCustomId(`service:pix:${order.id}`).setLabel('PIX Copia e Cola').setEmoji('💳').setStyle(1),
     new D.ButtonBuilder().setCustomId(`service:qr:${order.id}`).setLabel('QR Code').setEmoji('📱').setStyle(1),
-    new D.ButtonBuilder().setCustomId(`service:approve:${order.id}`).setLabel('Aprovar pagamento').setEmoji('✅').setStyle(3),
+    new D.ButtonBuilder().setCustomId(`service:approve:${order.id}`).setLabel('Aprovar pagamento').setEmoji({ id: '1558665037227499622' }).setStyle(3),
     new D.ButtonBuilder().setCustomId(`service:cancel:${order.id}`).setLabel('Cancelar pedido').setStyle(4)
   );
   if (order.status === 'paid') row.addComponents(new D.ButtonBuilder().setCustomId(`service:complete:${order.id}`).setLabel('Concluir atendimento').setEmoji('🏁').setStyle(3));
@@ -83,7 +83,7 @@ module.exports = {
           order.message = message.id;
           await db.set(`service_order_${id}`, order);
           await db.set(key, id);
-          await i.editReply(`✅ Pedido aberto em <#${channel.id}>. Combine o escopo e o prazo com a equipe antes de pagar.`);
+          await i.editReply(`<:check~1:1558665037227499622> Pedido aberto em <#${channel.id}>. Combine o escopo e o prazo com a equipe antes de pagar.`);
         } catch (error) {
           // Remove only a newly created channel if no durable order was saved.
           if (channel && !await db.get(key)) await channel.delete().catch(() => {});
@@ -126,7 +126,7 @@ module.exports = {
           current.status = 'paid'; current.approvedBy = i.user.id; current.paidAt = Date.now();
           await db.set(`service_order_${id}`, current);
           await refresh(i, current);
-          await i.editReply('✅ Pagamento aprovado. O canal continua aberto para atendimento e entrega.');
+          await i.editReply('<:check~1:1558665037227499622> Pagamento aprovado. O canal continua aberto para atendimento e entrega.');
           if (config.sales.cargo_cliente) {
             try { const member = await i.guild.members.fetch(current.customer); await member.roles.add(config.sales.cargo_cliente); }
             catch (error) { console.error('Falha ao entregar cargo Cliente:', error.message); await i.followUp({ ...ephemeral, content: 'Pagamento registrado, mas não consegui entregar o cargo Cliente. Confira a hierarquia e Gerenciar cargos.' }); }

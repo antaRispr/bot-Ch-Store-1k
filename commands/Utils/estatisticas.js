@@ -28,7 +28,7 @@ module.exports = {
                     .setColor(config.client.embed)
                     .setTitle(`${config.client.title} | Estatísticas`)
                     .addFields(
-                        { name: '✅ | Pedidos:', value: `${row.pedidos} compra(s) realizadas` },
+                        { name: '<:check~1:1558665037227499622> | Pedidos:', value: `${row.pedidos} compra(s) realizadas` },
                         { name: '💰 | Recebimentos:', value: `R$${row.compras.toFixed(2)}` }
                     )
             ]

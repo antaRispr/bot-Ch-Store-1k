@@ -76,7 +76,7 @@ module.exports = {
                         const collectorName = interaction2.channel.createMessageCollector();
                         collectorName.on('collect', (interactionName) => {
                             db.set(`product_${row.id}.name`, `${interactionName.content}`)
-                            interaction2.editReply(`✅ | Nome alterado com sucesso!`).then(m => { setTimeout(() => { m.delete() }, 1000) })
+                            interaction2.editReply(`<:check~1:1558665037227499622> | Nome alterado com sucesso!`).then(m => { setTimeout(() => { m.delete() }, 1000) })
                             interactionName.delete();
                             collectorName.stop();
                         });
@@ -85,7 +85,7 @@ module.exports = {
                         const collectorDescription = interaction2.channel.createMessageCollector();
                         collectorDescription.on('collect', (interactionName) => {
                             db.set(`product_${row.id}.body`, `${interactionName.content}`)
-                            interaction2.editReply(`✅ | Descrição alterada com sucesso!`).then(m => { setTimeout(() => { m.delete() }, 1000) })
+                            interaction2.editReply(`<:check~1:1558665037227499622> | Descrição alterada com sucesso!`).then(m => { setTimeout(() => { m.delete() }, 1000) })
                             interactionName.delete();
                             collectorDescription.stop()
                         });
@@ -94,7 +94,7 @@ module.exports = {
                         const collectorValue = interaction2.channel.createMessageCollector();
                         collectorValue.on('collect', (interactionName) => {
                             db.set(`product_${row.id}.value`, parseFloat(interactionName.content))
-                            interaction2.editReply(`✅ | Valor alterado com sucesso!`).then(m => { setTimeout(() => { m.delete() }, 1000) })
+                            interaction2.editReply(`<:check~1:1558665037227499622> | Valor alterado com sucesso!`).then(m => { setTimeout(() => { m.delete() }, 1000) })
                             interactionName.delete();
                             collectorValue.stop()
                         });

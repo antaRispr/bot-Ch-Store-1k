@@ -44,7 +44,7 @@ module.exports = {
         let botao = new Discord.ActionRowBuilder().addComponents(
             new Discord.ButtonBuilder()
             .setCustomId("verificar")
-            .setEmoji("✅")
+            .setEmoji({ id: '1558665037227499622' })
             .setLabel("Verifique-se")
             .setStyle(Discord.ButtonStyle.Primary)
         );

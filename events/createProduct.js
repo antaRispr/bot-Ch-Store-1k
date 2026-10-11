@@ -62,7 +62,7 @@ module.exports = {
             };
 
             await db.set(`product_${id}`, product);
-            interaction.reply({ content: '✅ | Serviço cadastrado com sucesso!', ephemeral: true })
+            interaction.reply({ content: '<:check~1:1558665037227499622> | Serviço cadastrado com sucesso!', ephemeral: true })
         }
     }
 }

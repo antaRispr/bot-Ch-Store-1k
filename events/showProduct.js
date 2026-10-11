@@ -54,7 +54,7 @@ module.exports = {
 
             db.set(`product_${product_id}.channel`, data)
 
-            return interaction.reply({ content: '✅ | Serviço exibido com sucesso!', ephemeral: true })
+            return interaction.reply({ content: '<:check~1:1558665037227499622> | Serviço exibido com sucesso!', ephemeral: true })
         }
     }
 }

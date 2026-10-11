@@ -202,7 +202,7 @@ client.on("interactionCreate", (interaction) => {
               }
             ]
           }).then( (ch) => {
-            interaction.reply({ content: `✅ Olá ${interaction.user}, seu ticket foi aberto em ${ch}!`, ephemeral: true })
+            interaction.reply({ content: `<:check~1:1558665037227499622> Olá ${interaction.user}, seu ticket foi aberto em ${ch}!`, ephemeral: true })
             let embed = new Discord.EmbedBuilder()
             .setColor("Random")
             .setDescription(`Olá ${interaction.user}, Você abriu o ticket de Suporte, para nos ajudar ja me fale qual é o problema.`);
@@ -256,7 +256,7 @@ client.on("interactionCreate", (interaction) => {
               }
             ]
           }).then( (ch) => {
-            interaction.reply({ content: `✅ Olá ${interaction.user}, seu ticket foi aberto em ${ch}!`, ephemeral: true })
+            interaction.reply({ content: `<:check~1:1558665037227499622> Olá ${interaction.user}, seu ticket foi aberto em ${ch}!`, ephemeral: true })
             let embed = new Discord.EmbedBuilder()
             .setColor("Random")
             .setDescription(`Olá ${interaction.user}, Você abriu o ticket de Duvida, para nos ajudar ja me fale qual é sua Duvida.`);
@@ -310,7 +310,7 @@ client.on("interactionCreate", (interaction) => {
               }
             ]
           }).then( (ch) => {
-            interaction.reply({ content: `✅ Olá ${interaction.user}, seu ticket foi aberto em ${ch}!`, ephemeral: true })
+            interaction.reply({ content: `<:check~1:1558665037227499622> Olá ${interaction.user}, seu ticket foi aberto em ${ch}!`, ephemeral: true })
             let embed = new Discord.EmbedBuilder()
             .setColor("Random")
             .setDescription(`Olá ${interaction.user}, Você abriu o ticket de Suporte, para nos ajudar ja me fale qual é o problema.`);
@@ -364,7 +364,7 @@ client.on("interactionCreate", (interaction) => {
               }
             ]
           }).then( (ch) => {
-            interaction.reply({ content: `✅ Olá ${interaction.user}, seu ticket foi aberto em ${ch}!`, ephemeral: true })
+            interaction.reply({ content: `<:check~1:1558665037227499622> Olá ${interaction.user}, seu ticket foi aberto em ${ch}!`, ephemeral: true })
             let embed = new Discord.EmbedBuilder()
             .setColor("Random")
             .setDescription(`Olá ${interaction.user}, Você abriu o ticket de Problemas no Produto, para nos ajudar ja me fale qual é o Problema do Produto.`);
