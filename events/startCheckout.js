@@ -132,15 +132,16 @@ module.exports = {
             catch (error) { console.error('Falha ao entregar cargo Cliente:', error.message); await i.followUp({ ...ephemeral, content: 'Pagamento registrado, mas não consegui entregar o cargo Cliente. Confira a hierarquia e Gerenciar cargos.' }); }
           }
           try {
+            const buyer = await i.client.users.fetch(current.customer).catch(() => null);
             const logs = await i.guild.channels.fetch(config.sales.logs_compras);
             await logs.send({
               embeds: [new D.EmbedBuilder()
                 .setColor(config.client.embed)
                 .setTitle('Pagamento aprovado')
+                .setThumbnail(buyer ? buyer.displayAvatarURL({ size: 256 }) : null)
                 .addFields(
                   { name: 'Cliente', value: `<@${current.customer}>`, inline: true },
                   { name: 'Responsável', value: `<@${i.user.id}>`, inline: true },
-                  { name: 'Serviço', value: current.name },
                   { name: 'Valor', value: money(current.price), inline: true },
                   { name: 'Atendimento', value: `<#${current.channel}>`, inline: true }
                 )

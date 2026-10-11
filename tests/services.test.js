@@ -13,7 +13,7 @@ function interaction({ action, user = 'buyer', staff = false, modal = false, pro
     permissionOverwrites: { edit: async () => {} }, send: async payload => { messages.push(payload); return { id: 'message' }; }, delete: async () => {} };
   const i = { result, customId: modal ? `service_request:${product}` : action ? `service:${action}:order` : `sales-${product}`,
     guildId: 'guild', channelId: 'channel', user: { id: user }, member: { roles: { cache: { has: () => staff } } },
-    fields: { getTextInputValue: () => 'Quero um bot com moderação e tickets.' }, client: { user: { id: 'bot' } }, channel,
+    fields: { getTextInputValue: () => 'Quero um bot com moderação e tickets.' }, client: { user: { id: 'bot' }, users: { fetch: async id => { assert.equal(id, 'buyer'); return { displayAvatarURL: () => 'https://cdn.discordapp.com/avatars/buyer/avatar.png' }; } } }, channel,
     guild: { channels: { create: async payload => { channelsCreated.push(payload); return channel; }, fetch: async () => channel }, members: { fetch: async id => ({ roles: { add: async () => roleRecipients.push(id) } }) } },
     isButton: () => !modal, isModalSubmit: () => modal,
     reply: async payload => { i.replied = true; result.push(payload); }, deferReply: async () => { i.deferred = true; },
@@ -54,6 +54,8 @@ test('buyer cannot approve; staff approval survives restart and cannot be charge
   assert.deepEqual(roleRecipients, ['buyer']); assert.equal(messages.length, 1);
   const log = messages[0].embeds[0].toJSON();
   assert.equal(log.title, 'Pagamento aprovado');
+  assert.equal(log.thumbnail.url, 'https://cdn.discordapp.com/avatars/buyer/avatar.png');
+  assert(!log.fields.some(field => field.name === 'Serviço'));
   assert.equal(log.fields.find(field => field.name === 'Cliente').value, '<@buyer>');
   assert.equal(log.fields.find(field => field.name === 'Valor').value, 'R$ 15.00');
   assert(log.timestamp);
