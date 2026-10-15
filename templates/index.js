@@ -1,11 +1,10 @@
 const { EmbedBuilder } = require('discord.js');
-const config = require('../config.json');
 const e = require('./emojis');
 
 const templates = Object.freeze({
   loja: {
     label: 'Vitrine da loja', emoji: e.carrinho,
-    title: `${e.carrinho} CH STORE • LOJA OFICIAL`,
+    title: 'CH STORE • LOJA OFICIAL',
     description: [
       '**Bem-vindo à CH Store!** Seu próximo projeto começa aqui.',
       '',
@@ -23,7 +22,7 @@ const templates = Object.freeze({
   },
   parcerias: {
     label: 'Parcerias', emoji: e.parcerias,
-    title: `${e.parcerias} CH STORE • PARCERIAS`,
+    title: 'CH STORE • PARCERIAS',
     description: [
       '**Vamos crescer juntos?**',
       '',
@@ -42,7 +41,7 @@ const templates = Object.freeze({
   },
   novidades: {
     label: 'Novidades e lançamentos', emoji: e.foguete,
-    title: `${e.foguete} CH STORE • NOVIDADES`,
+    title: 'CH STORE • NOVIDADES',
     description: [
       '**O próximo nível está chegando!**',
       '',
@@ -60,7 +59,7 @@ const templates = Object.freeze({
   },
   configuracoes: {
     label: 'Informações e configurações', emoji: e.configuracoes,
-    title: `${e.configuracoes} CH STORE • CENTRAL DE INFORMAÇÕES`,
+    title: 'CH STORE • CENTRAL DE INFORMAÇÕES',
     description: [
       '**Tudo organizado para uma experiência simples e segura.**',
       '',
@@ -83,7 +82,7 @@ function makeEmbed(key) {
   const template = templates[key];
   if (!template) throw new Error('Template desconhecido');
   return new EmbedBuilder()
-    .setColor(config.client.embed || '#313338')
+    .setColor('#238BFF')
     .setTitle(template.title)
     .setDescription(template.description)
     .setFooter({ text: template.footer })
